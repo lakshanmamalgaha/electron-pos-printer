@@ -40,7 +40,7 @@ export class PosPrinter {
             if (!options.preview || !options.silent) {
                 setTimeout(() => {
                     if (!printedState) {
-                        const errorMsg = window_print_error ? window_print_error: 'TimedOut';
+                        const errorMsg = window_print_error ? window_print_error : 'TimedOut';
                         reject(errorMsg);
                         printedState = true;
                     }
@@ -53,6 +53,7 @@ export class PosPrinter {
                 show: !!options.preview,
                 webPreferences: {
                     nodeIntegration: true,        // For electron >= 4.0.0
+                    contextIsolation: false
                 }
             });
             // mainWindow
@@ -82,41 +83,42 @@ export class PosPrinter {
                  *
                  */
                 return PosPrinter.renderPrintDocument(mainWindow, data)
-                .then(() => {
-                    if (!options.preview) {
-                        mainWindow.webContents.print({
-                            silent: !!options.silent,
-                            printBackground: true,
-                            deviceName: options.printerName,
-                            copies: options.copies ? options.copies : 1,
-                            pageSize: options.pageSize ? options.pageSize : 'A4'
-                        }, (arg, err) => {
-                            // console.log(arg, err);
-                            if (err) {
-                                window_print_error = err;
-                                reject(err);
-                            }
-                            if (!printedState) {
-                                resolve({complete: arg});
-                                printedState = true;
-                            }
-                            mainWindow.close();
-                        })
-                    } else {
-                        resolve({complete: true});
-                    }
-                })
+                    .then(() => {
+                        if (!options.preview) {
+                            mainWindow.webContents.print({
+                                silent: !!options.silent,
+                                printBackground: true,
+                                deviceName: options.printerName,
+                                copies: options.copies ? options.copies : 1,
+                                pageSize: options.pageSize ? options.pageSize : 'A4'
+                            }, (arg, err) => {
+                                // console.log(arg, err);
+                                if (err) {
+                                    window_print_error = err;
+                                    reject(err);
+                                }
+                                if (!printedState) {
+                                    resolve({complete: arg});
+                                    printedState = true;
+                                }
+                                mainWindow.close();
+                            })
+                        } else {
+                            resolve({complete: true});
+                        }
+                    })
                     .catch(err => reject(err));
             })
         });
-    }   
-    /** 
-     * @Method 
+    }
+
+    /**
+     * @Method
      * @Param data {any[]}
      * @Return {Promise}
-     * @description Render the print data in the render process 
-     * 
-    */
+     * @description Render the print data in the render process
+     *
+     */
     private static renderPrintDocument(window: any, data: PosPrintData[]): Promise<any> {
         return new Promise((resolve, reject) => {
             data.forEach(async (line, lineIndex) => {
@@ -140,22 +142,23 @@ export class PosPrinter {
             // when the render process is done rendering the page, resolve
             resolve({message: 'page-rendered'});
         })
-    } 
+    }
 }
+
 /**
  * @function sendMsg
- * @description Sends messages to the render process to render the data specified in the PostPrintDate interface and recieves a status of true 
- * 
-*/
+ * @description Sends messages to the render process to render the data specified in the PostPrintDate interface and recieves a status of true
+ *
+ */
 function sendIpcMsg(channel: any, webContents: any, arg: any) {
-    return new Promise((resolve,reject)=>{
-        ipcMain.once(`${channel}-reply`, function(event, result) {
+    return new Promise((resolve, reject) => {
+        ipcMain.once(`${channel}-reply`, function (event, result) {
             if (result.status) {
                 resolve(result);
             } else {
                 reject(result.error);
             }
         });
-        webContents.send(channel,arg);
+        webContents.send(channel, arg);
     });
 }

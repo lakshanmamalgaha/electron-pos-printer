@@ -90,6 +90,7 @@ var PosPrinter = /** @class */ (function () {
                 show: !!options.preview,
                 webPreferences: {
                     nodeIntegration: true,
+                    contextIsolation: false
                 }
             });
             // mainWindow
@@ -170,7 +171,7 @@ var PosPrinter = /** @class */ (function () {
      * @Return {Promise}
      * @description Render the print data in the render process
      *
-    */
+     */
     PosPrinter.renderPrintDocument = function (window, data) {
         var _this = this;
         return new Promise(function (resolve, reject) {
@@ -211,7 +212,7 @@ exports.PosPrinter = PosPrinter;
  * @function sendMsg
  * @description Sends messages to the render process to render the data specified in the PostPrintDate interface and recieves a status of true
  *
-*/
+ */
 function sendIpcMsg(channel, webContents, arg) {
     return new Promise(function (resolve, reject) {
         ipcMain.once(channel + "-reply", function (event, result) {
